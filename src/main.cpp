@@ -6,6 +6,8 @@
 #include "file_io.hpp"
 #include "xdg.hpp"
 
+constexpr auto program = "bcd.hex";
+
 std::ostream &operator<<(std::ostream &os, const std::vector<uint8_t> &v) {
   for (const auto &x : v) {
     os << x;
@@ -13,15 +15,14 @@ std::ostream &operator<<(std::ostream &os, const std::vector<uint8_t> &v) {
   return os;
 }
 
-
 int main(int argc, const char *argv[]) {
   xdg::base base_dirs = xdg::get_base_directories();
 
   auto log_path = xdg::get_data_path(base_dirs, "qch8", "logs/qch8.log", true);
   fio::log_stream_f log_stream(*log_path);
 
-  auto prog_path = xdg::get_data_path(base_dirs, "qch8", "hw.hex");
-  if (!prog_path) { log_stream << "program not found: " << "hw.hex" << "\n"; }
+  auto prog_path = xdg::get_data_path(base_dirs, "qch8", program);
+  if (!prog_path) { log_stream << "program not found: " << program << "\n"; }
   auto prog_data = fio::readb(*prog_path);
   if (!prog_data) { log_stream << "could not read file"; }
   log_stream << "loading program ...\n--> " << *prog_path << "\n";
@@ -46,7 +47,7 @@ int main(int argc, const char *argv[]) {
     //process input
   }
 
-  std::cout << dump_registers(m, true) << "\n";
+  std::cout << dump_registers(m) << "\n";
   std::cout << dump_memory(m) << "\n";
 
   return 0;
