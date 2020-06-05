@@ -68,3 +68,32 @@ std::string chip8::dump_registers(const machine &m, bool ascii) {
 
   return ss.str();
 }
+
+std::string chip8::dump_memory(const machine &m) {
+  std::stringstream ss;
+
+  for (int i = 0; i < 4096; i += 16) {
+    std::stringstream line;
+    char buf[5];
+    snprintf(buf, 5, "%04x", i);
+
+    line << buf << " ";
+
+    for (int j = 0; j < 16; j++) {
+      snprintf(buf, 3, "%02x", m.mem[i + j]);
+      line << buf << " ";
+    }
+
+    line << " : ";
+
+    for (int j = 0; j < 16; j++) {
+      char c = m.mem[i + j];
+      snprintf(buf, 2, ((c >= ' ' && c <= '~') ? "%c" : "."), c);
+      line << buf;
+    }
+
+    ss << line.str() << "\n";
+  }
+
+  return ss.str();
+}

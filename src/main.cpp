@@ -47,6 +47,7 @@ int main(int argc, const char *argv[]) {
   }
 
   std::cout << dump_registers(m, true) << "\n";
+  std::cout << dump_memory(m) << "\n";
 
   return 0;
 }

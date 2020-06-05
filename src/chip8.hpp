@@ -30,6 +30,7 @@ namespace chip8 {
   func_t decode_opcode(const opcode &op);
 
   std::string dump_registers(const machine &m, bool ascii=false);
+  std::string dump_memory(const machine &m);
 
   std::array<uint8_t, 2> split_xnn(const opcode &op);
 
