@@ -1,5 +1,6 @@
-SOURCES=$(wildcard src/*.cpp)
+SOURCES=$(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
 OBJECTS=$(patsubst src/%,build/%,${SOURCES:.cpp=.o})
+DIRS=$(filter-out build/,$(sort $(dir ${OBJECTS})))
 
 CXX=g++
 LD_FLAGS=
@@ -18,7 +19,7 @@ build/%.o: src/%.cpp
 
 .PHONY: dirs
 dirs:
-	mkdir -p build/
+	mkdir -p ${DIRS}
 	mkdir -p out/
 
 .PHONY: clean

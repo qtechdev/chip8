@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include "chip8.hpp"
-#include "file_io.hpp"
-#include "xdg.hpp"
+#include "util/file_io.hpp"
+#include "util/xdg.hpp"
 
 constexpr auto program = "bcd.hex";
 
