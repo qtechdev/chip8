@@ -13,6 +13,8 @@ chip8::machine::machine() {
   for (int i = 0; i < char_data.size(); i++) {
     mem[font_index + i] = char_lines[char_data[i]];
   }
+
+  engine.seed(std::random_device{}());
 };
 
 chip8::opcode chip8::fetch_opcode(const machine &m) {
@@ -65,22 +67,42 @@ uint8_t chip8::sprite_address(const uint8_t index) {
 
 std::string chip8::dump_registers(const machine &m, bool ascii) {
   std::stringstream ss;
-
-  for (int i = 0; i < 16; i++) {
-    char buf[5];
+  char buf[13];
+  ss << "| ";
+  for (int i = 0; i < 8; i++) {
     snprintf(buf, 5, "  V%X", i);
-
-    ss << buf << " ";
+    ss << buf << " |";
   }
-
-  ss << "\n";
-
-  for (const auto &c : m.reg) {
-    char buf[5];
-    snprintf(buf, 5, (ascii ? "%4c" : "%#4x"), c);
-
-    ss << buf << " ";
+  ss << "\n| ";
+  for (int i = 0; i < 8; i++) {
+    snprintf(buf, 5, (ascii ? "%4c" : "%#4x"), m.reg[i]);
+    ss << buf << " |";
   }
+  ss << "\n\n| ";
+
+  for (int i = 8; i < 16; i++) {
+    snprintf(buf, 5, "  V%X", i);
+    ss << buf << " |";
+  }
+  ss << "\n| ";
+  for (int i = 8; i < 16; i++) {
+    snprintf(buf, 5, (ascii ? "%4c" : "%#4x"), m.reg[i]);
+    ss << buf << " |";
+  }
+  ss << "\n\n| ";
+
+
+  ss << "         I |        pc |  sp |  dt |  st |\n| ";
+  snprintf(buf, 13, "    %#6x", m.I);
+  ss << buf << " |";
+  snprintf(buf, 13, "    %#6x", m.pc);
+  ss << buf << " |";
+  snprintf(buf, 5, "%#4x", m.sp);
+  ss << buf << " |";
+  snprintf(buf, 5, "%#4x", m.delay_timer);
+  ss << buf << " |";
+  snprintf(buf, 5, "%#4x", m.sound_timer);
+  ss << buf << " |";
 
   return ss.str();
 }
@@ -291,8 +313,9 @@ void chip8::f_bnnn(machine &m, const opcode &op) { // jmpv [addr]
 }
 
 void chip8::f_cxnn(machine &m, const opcode &op) { // rand [r] [v]
+  uint8_t rng = m.distribution(m.engine);
   auto [r, v] = split_xnn(op);
-  m.reg[r] = (rand() % 256) & v;
+  m.reg[r] = (rng % 256) & v;
   m.pc += 2;
 }
 void chip8::f_dxyn(machine &m, const opcode &op) { /**/ m.pc += 2; }
@@ -334,9 +357,9 @@ void chip8::f_fx29(machine &m, const opcode &op) { // addr [x]
 
 void chip8::f_fx33(machine &m, const opcode &op) { // bcd [x]
   auto x = split_x(op);
-  m.mem[m.I] = x / 100;
-  m.mem[m.I + 1] = (x / 10) % 10;
-  m.mem[m.I + 2] = x % 10;
+  m.mem[m.I] = m.reg[x] / 100;
+  m.mem[m.I + 1] = (m.reg[x] / 10) % 10;
+  m.mem[m.I + 2] = m.reg[x] % 10;
   m.pc += 2;
 }
 

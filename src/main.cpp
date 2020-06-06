@@ -47,8 +47,8 @@ int main(int argc, const char *argv[]) {
     //process input
   }
 
-  std::cout << dump_registers(m) << "\n";
   std::cout << dump_memory(m) << "\n";
+  std::cout << dump_registers(m) << "\n";
 
   return 0;
 }

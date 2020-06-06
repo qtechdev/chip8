@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <ostream>
+#include <random>
 #include <string>
 
 namespace chip8 {
@@ -39,6 +40,9 @@ namespace chip8 {
 
   struct machine {
     machine();
+
+    std::uniform_int_distribution<uint8_t> distribution;
+    std::mt19937 engine;
 
     std::array<uint8_t, 16> reg = {0};
     std::array<uint8_t, 4096> mem = {0};
