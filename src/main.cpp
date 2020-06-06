@@ -4,8 +4,10 @@
 
 #include "chip8.hpp"
 #include "util/file_io.hpp"
+#include "util/timer.hpp"
 #include "util/xdg.hpp"
 
+constexpr timing::seconds update_timestep(1.0/60.0);
 constexpr auto program = "bcd.hex";
 
 std::ostream &operator<<(std::ostream &os, const std::vector<uint8_t> &v) {
@@ -33,22 +35,36 @@ int main(int argc, const char *argv[]) {
   // laod rom
   std::copy(prog_data->begin(), prog_data->end(), &m.mem[0x200]);
 
+  timing::Clock clock;
+  timing::Timer loop_timer;
+  timing::seconds time_accumulator(0.0);
+
   while (!m.quit) {
-    chip8::opcode op = chip8::fetch_opcode(m);
-    chip8::func_t f = chip8::decode_opcode(op);
-    f(m, op);
+    time_accumulator += loop_timer.getDelta();
 
-    // reduce timers
+    loop_timer.tick(clock.get());
 
-    if (m.draw) {
-      //draw
+    while (time_accumulator >= update_timestep) {
+      std::cout << time_accumulator.count() << "\n";
+      chip8::opcode op = chip8::fetch_opcode(m);
+      chip8::func_t f = chip8::decode_opcode(op);
+      f(m, op);
+
+      // reduce timers
+      --m.delay_timer;
+      --m.sound_timer;
+
+      if (m.draw) {
+        //draw
+      }
+
+      //process input
+      time_accumulator -= update_timestep;
     }
-
-    //process input
   }
 
-  std::cout << dump_memory(m) << "\n";
-  std::cout << dump_registers(m) << "\n";
+  // std::cout << dump_memory(m) << "\n";
+  // std::cout << dump_registers(m) << "\n";
 
   return 0;
 }
