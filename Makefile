@@ -3,8 +3,8 @@ OBJECTS=$(patsubst src/%,build/%,${SOURCES:.cpp=.o})
 DIRS=$(filter-out build/,$(sort $(dir ${OBJECTS})))
 
 CXX=g++
-LD_FLAGS=
-CXX_FLAGS=-std=c++17
+LD_FLAGS=-lcurses -ldl -lGL -lglfw -L./lib -lglad
+CXX_FLAGS=-std=c++17 -I./include
 
 NAME=chip8
 BINARY=out/${NAME}

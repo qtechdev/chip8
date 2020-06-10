@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
-#include <iostream>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -22,7 +21,7 @@ chip8::opcode chip8::fetch_opcode(const machine &m) {
 }
 
 chip8::func_t chip8::decode_opcode(const opcode &op) {
-  if (op == 0x0000) { return halt; }
+  if (op == 0x0000) { return nop; }
   if (op == 0x00e0) { return f_00e0; }
   if (op == 0x00ee) { return f_00ee; }
   if ((op & 0xf000) == 0x1000) { return f_1nnn; }
@@ -136,6 +135,24 @@ std::string chip8::dump_memory(const machine &m) {
   return ss.str();
 }
 
+std::string chip8::dump_graphics_data(const machine &m) {
+  std::stringstream ss;
+
+  for (int i = 0; i < 32*64; i += 64) {
+    std::stringstream line;
+    char buf[2];
+
+    for (int j = 0; j < 64; j++) {
+      snprintf(buf, 2, "%x", m.gfx[i + j]);
+      line << buf;
+    }
+
+    ss << line.str() << "\n";
+  }
+
+  return ss.str();
+}
+
 uint8_t chip8::split_x(const opcode &op) {
   return (op & 0x0f00) >> 8;
 }
@@ -166,6 +183,17 @@ std::array<uint8_t, 3> chip8::split_xyn(const opcode &op) {
   return {x, y, n};
 }
 
+void chip8::nop(machine &m, const opcode &op) { // HALT
+  #ifdef DEBUG
+  snprintf(
+    m.debug_out, m.debug_out_size,
+    "%#06x %#06x : NOP", m.pc, op
+  );
+  #endif
+
+  m.pc += 2;
+}
+
 void chip8::panic(machine &m, const opcode &op) { // PANIC
   #ifdef DEBUG
   snprintf(
@@ -177,7 +205,7 @@ void chip8::panic(machine &m, const opcode &op) { // PANIC
   char buf[7];
   snprintf(buf,  7, "%#06x", m.pc, op);
 
-  std::cerr << "Unknown Instruction! [" << buf << "]\n";
+  // std::cerr << "Unknown Instruction! [" << buf << "]\n";
   m.quit = true;
 }
 
@@ -201,6 +229,7 @@ void chip8::f_00e0(machine &m, const opcode &op) { // clear
   #endif
 
   m.gfx.fill(0);
+  m.draw = true;
   m.pc += 2;
 }
 

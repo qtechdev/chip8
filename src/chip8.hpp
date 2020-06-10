@@ -69,6 +69,7 @@ namespace chip8 {
   uint8_t sprite_address(const uint8_t index);
 
   std::string dump_registers(const machine &m, bool ascii=false);
+  std::string dump_graphics_data(const machine &m);
   std::string dump_memory(const machine &m);
 
   uint8_t split_x(const opcode &op);
@@ -77,6 +78,7 @@ namespace chip8 {
   std::array<uint8_t, 2> split_rv(const opcode &op);
   std::array<uint8_t, 3> split_xyn(const opcode &op);
 
+  void nop(machine &m, const opcode &op);
   void panic(machine &m, const opcode &op);
   void halt(machine &m, const opcode &op);
   // void f_0nnn(machine &m, const opcode &op);
