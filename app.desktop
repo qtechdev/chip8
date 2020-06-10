@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=qchip
+GenericName=Chip-8 Emulator
+Exec=qchip
+Icon=qchip
+Categories=Utility;Game
+Terminal=true
