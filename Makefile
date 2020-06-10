@@ -1,12 +1,20 @@
-SOURCES=$(wildcard src/*.cpp)
+SOURCES=$(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
 OBJECTS=$(patsubst src/%,build/%,${SOURCES:.cpp=.o})
+DIRS=$(filter-out build/,$(sort $(dir ${OBJECTS})))
 
 CXX=g++
-LD_FLAGS=
-CXX_FLAGS=-std=c++17
+LD_FLAGS=-lcurses -ldl -lGL -lglfw -L./lib -lglad
+CXX_FLAGS=-std=c++17 -I./include
 
 NAME=chip8
 BINARY=out/${NAME}
+
+ifdef DEBUG
+CXX_FLAGS += -g -DDEBUG
+endif
+ifndef DEBUG
+CXX_FLAGS += -O2
+endif
 
 all: dirs ${BINARY}
 
@@ -18,7 +26,7 @@ build/%.o: src/%.cpp
 
 .PHONY: dirs
 dirs:
-	mkdir -p build/
+	mkdir -p ${DIRS}
 	mkdir -p out/
 
 .PHONY: clean
