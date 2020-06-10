@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <map>
 
 #include "glad.h"
 #include <GLFW/glfw3.h>
@@ -26,8 +27,27 @@ static constexpr int window_height = 480;
 static constexpr int gl_major_version = 3;
 static constexpr int gl_minor_version = 3;
 
+static const std::map<int, uint8_t> key_map = {
+  {GLFW_KEY_X, 0x0},
+  {GLFW_KEY_1, 0x1},
+  {GLFW_KEY_2, 0x2},
+  {GLFW_KEY_3, 0x3},
+  {GLFW_KEY_Q, 0x4},
+  {GLFW_KEY_W, 0x5},
+  {GLFW_KEY_E, 0x6},
+  {GLFW_KEY_A, 0x7},
+  {GLFW_KEY_S, 0x8},
+  {GLFW_KEY_D, 0x9},
+  {GLFW_KEY_Z, 0xa},
+  {GLFW_KEY_C, 0xb},
+  {GLFW_KEY_4, 0xc},
+  {GLFW_KEY_R, 0xd},
+  {GLFW_KEY_F, 0xe},
+  {GLFW_KEY_V, 0xf}
+};
+
 constexpr timing::seconds update_timestep(1.0/60.0);
-constexpr auto program = "disp.hex";
+constexpr auto program = "keys.hex";
 
 #ifdef DEBUG
 namespace xdg {
@@ -41,10 +61,9 @@ namespace fio {
     const xdg::path_t &path, fio::log_stream_f &log_stream
   );
 }
-Texture loadTexture(const xdg::path_t &path, fio::log_stream_f &log_stream);
 #endif
 
-void processInput(GLFWwindow *window);
+void processInput(GLFWwindow *window, chip8::machine &m);
 std::array<glm::mat4, 3> fullscreen_rect_matrices(const int w, const int h);
 
 int main(int argc, const char *argv[]) {
@@ -175,20 +194,24 @@ int main(int argc, const char *argv[]) {
 
     //process input
     glfwPollEvents();
-    processInput(window);
+    processInput(window, m);
 
     while (time_accumulator >= update_timestep) {
-      chip8::opcode op = chip8::fetch_opcode(m);
-      chip8::func_t f = chip8::decode_opcode(op);
-      f(m, op);
+      if (!m.blocking) {
+        chip8::opcode op = chip8::fetch_opcode(m);
+        chip8::func_t f = chip8::decode_opcode(op);
+        f(m, op);
 
-      #ifdef DEBUG
-      std::cout << m.debug_out << "\n";
-      #endif
+        #ifdef DEBUG
+        std::cout << m.debug_out << "\n";
+        #endif
 
-      // reduce timers
-      --m.delay_timer;
-      --m.sound_timer;
+        // reduce timers
+        --m.delay_timer;
+        --m.sound_timer;
+      } else {
+        chip8::get_key(m);
+      }
 
       if (m.draw) {
         bindTexture(texture);
@@ -246,17 +269,21 @@ std::optional<xdg::path_t> fio::read(
 
   return data;
 }
-
-Texture loadTexture(const xdg::path_t &path, fio::log_stream_f &log_stream) {
-  log_stream << "Loading texture: " << path << "\n";
-
-  return loadTexture(path.c_str());
-}
 #endif
 
-void processInput(GLFWwindow *window) {
+void processInput(GLFWwindow *window, chip8::machine &m) {
   if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
+  }
+
+  for (auto &[k, v] : key_map) {
+    int state = glfwGetKey(window, k);
+
+    if (state == GLFW_PRESS) {
+      m.keys[v] = true;
+    } else if (state == GLFW_RELEASE) {
+      m.keys[v] = false;
+    }
   }
 }
 

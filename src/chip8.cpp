@@ -183,6 +183,16 @@ std::array<uint8_t, 3> chip8::split_xyn(const opcode &op) {
   return {x, y, n};
 }
 
+void chip8::get_key(machine &m) {
+  for (int k = 0; k < m.keys.size(); k++) {
+    if (m.keys[k]) {
+      m.reg[m.br] = k;
+      m.blocking = false;
+      return;
+    }
+  }
+}
+
 void chip8::nop(machine &m, const opcode &op) { // HALT
   #ifdef DEBUG
   snprintf(
@@ -552,8 +562,35 @@ void chip8::f_dxyn(machine &m, const opcode &op) {
   m.pc +=  2;
 }
 
-void chip8::f_ex9e(machine &m, const opcode &op) { /**/ m.pc += 2; }
-void chip8::f_exa1(machine &m, const opcode &op) { /**/ m.pc += 2; }
+void chip8::f_ex9e(machine &m, const opcode &op) { // keq [r]
+  auto x = split_x(op);
+  #ifdef DEBUG
+  snprintf(
+    m.debug_out, m.debug_out_size,
+    "%#06x %#06x : keq V%x", m.pc, op, x
+  );
+  #endif
+  if (m.keys[m.reg[x]]) {
+    m.pc += 2;
+  }
+
+  m.pc += 2;
+}
+void chip8::f_exa1(machine &m, const opcode &op) { // kne [r]
+  auto x = split_x(op);
+  #ifdef DEBUG
+  snprintf(
+    m.debug_out, m.debug_out_size,
+    "%#06x %#06x : kne V%x", m.pc, op, x
+  );
+  #endif
+  if (m.keys[m.reg[x]]) {
+    m.pc += 2;
+  }
+
+  m.pc += 2;
+}
+
 void chip8::f_fx07(machine &m, const opcode &op) { // std [r]
   auto x = split_x(op);
   #ifdef DEBUG
@@ -567,7 +604,20 @@ void chip8::f_fx07(machine &m, const opcode &op) { // std [r]
   m.pc += 2;
 }
 
-void chip8::f_fx0a(machine &m, const opcode &op) { /**/ m.pc += 2; }
+void chip8::f_fx0a(machine &m, const opcode &op) { // key [r]
+  auto x = split_x(op);
+  #ifdef DEBUG
+  snprintf(
+    m.debug_out, m.debug_out_size,
+    "%#06x %#06x : key V%x", m.pc, op, x
+  );
+  #endif
+
+  m.blocking = true;
+  m.br = x;
+  m.pc += 2;
+}
+
 void chip8::f_fx15(machine &m, const opcode &op) { // ldd [r]
   auto x = split_x(op);
   #ifdef DEBUG

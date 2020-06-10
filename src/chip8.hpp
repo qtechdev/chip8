@@ -54,11 +54,13 @@ namespace chip8 {
     uint16_t pc = entry_point;
     uint16_t I = 0;
     uint8_t sp = 0;
+    uint8_t br = 0;
     uint8_t delay_timer = 0;
     uint8_t sound_timer = 0;
 
     bool quit=false;
     bool draw=false;
+    bool blocking=false;
     constexpr static int debug_out_size = 100;
     char debug_out[debug_out_size];
   };
@@ -77,6 +79,8 @@ namespace chip8 {
   std::array<uint8_t, 2> split_xy(const opcode &op);
   std::array<uint8_t, 2> split_rv(const opcode &op);
   std::array<uint8_t, 3> split_xyn(const opcode &op);
+
+  void get_key(machine &m);
 
   void nop(machine &m, const opcode &op);
   void panic(machine &m, const opcode &op);
