@@ -14,9 +14,9 @@ namespace chip8 {
 
   constexpr std::array<uint8_t, 4> char_lines = {
     0xf0, // ****----
-    0x80, // *--*----
+    0x90, // *--*----
     0x10, // ---*----
-    0x70  // *-------
+    0x80  // *-------
   };
 
   constexpr std::array<uint8_t, 5*16> char_data = {
@@ -44,9 +44,11 @@ namespace chip8 {
     std::uniform_int_distribution<uint8_t> distribution;
     std::mt19937 engine;
 
+    static constexpr std::size_t display_width = 64;
+    static constexpr std::size_t display_height = 32;
     std::array<uint8_t, 16> reg = {0};
     std::array<uint8_t, 4096> mem = {0};
-    std::array<uint8_t, 64*32> gfx = {0};
+    std::array<uint8_t, display_width*display_height> gfx = {0};
     std::array<uint16_t, 16> stack = {0};
     std::array<bool, 16> keys = {0};
     uint16_t pc = entry_point;
@@ -57,6 +59,8 @@ namespace chip8 {
 
     bool quit=false;
     bool draw=false;
+    constexpr static int debug_out_size = 100;
+    char debug_out[debug_out_size];
   };
 
   using func_t = std::function<void(machine &m, const opcode &op)>;
@@ -68,9 +72,9 @@ namespace chip8 {
   std::string dump_memory(const machine &m);
 
   uint8_t split_x(const opcode &op);
-  uint16_t split_nnn(const opcode &op);
+  uint16_t split_addr(const opcode &op);
   std::array<uint8_t, 2> split_xy(const opcode &op);
-  std::array<uint8_t, 2> split_xnn(const opcode &op);
+  std::array<uint8_t, 2> split_rv(const opcode &op);
   std::array<uint8_t, 3> split_xyn(const opcode &op);
 
   void panic(machine &m, const opcode &op);

@@ -8,7 +8,7 @@
 #include "util/xdg.hpp"
 
 constexpr timing::seconds update_timestep(1.0/60.0);
-constexpr auto program = "bcd.hex";
+constexpr auto program = "disp.hex";
 
 std::ostream &operator<<(std::ostream &os, const std::vector<uint8_t> &v) {
   for (const auto &x : v) {
@@ -45,17 +45,39 @@ int main(int argc, const char *argv[]) {
     loop_timer.tick(clock.get());
 
     while (time_accumulator >= update_timestep) {
-      std::cout << time_accumulator.count() << "\n";
       chip8::opcode op = chip8::fetch_opcode(m);
       chip8::func_t f = chip8::decode_opcode(op);
       f(m, op);
+
+      #ifdef DEBUG
+      std::cout << m.debug_out << "\n";
+      #endif
 
       // reduce timers
       --m.delay_timer;
       --m.sound_timer;
 
       if (m.draw) {
-        //draw
+        for (int i = 0; i < m.display_width; i++) {
+          std::cout << '-';
+        }
+        std::cout << '\n';
+
+        for (std::size_t row = 0; row < m.display_height; row++) {
+          for (std::size_t col = 0; col < m.display_width; col++) {
+            std::size_t index = (row * m.display_width) + col;
+            uint8_t pixel = m.gfx[index];
+            std::cout << (pixel == 0 ? " " : "█");
+          }
+          std::cout << '\n';
+        }
+
+        for (int i = 0; i < m.display_width; i++) {
+          std::cout << '-';
+        }
+        std::cout << '\n';
+
+        m.draw = false;
       }
 
       //process input
