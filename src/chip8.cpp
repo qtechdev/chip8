@@ -279,12 +279,12 @@ void chip8::f_2nnn(machine &m, const opcode &op) { // call [addr]
   m.pc = addr;
 }
 
-void chip8::f_3xnn(machine &m, const opcode &op) { // beq [r] [v]
+void chip8::f_3xnn(machine &m, const opcode &op) { // seq [r] [v]
   auto [r, v] = split_rv(op);
   #ifdef DEBUG
   snprintf(
     m.debug_out, m.debug_out_size,
-    "%#06x %#06x : beq V%x, %#04x", m.pc, op, r, m.reg[r], v
+    "%#06x %#06x : seq V%x, %#04x", m.pc, op, r, m.reg[r], v
   );
   #endif
 
@@ -294,12 +294,12 @@ void chip8::f_3xnn(machine &m, const opcode &op) { // beq [r] [v]
   m.pc += 2;
 }
 
-void chip8::f_4xnn(machine &m, const opcode &op) { // bne [r] [v]
+void chip8::f_4xnn(machine &m, const opcode &op) { // sne [r] [v]
   auto [r, v] = split_rv(op);
   #ifdef DEBUG
   snprintf(
     m.debug_out, m.debug_out_size,
-    "%#06x %#06x : bne V%x, %#04x", m.pc, op, r, m.reg[r], v
+    "%#06x %#06x : sne V%x, %#04x", m.pc, op, r, m.reg[r], v
   );
   #endif
 
@@ -309,12 +309,12 @@ void chip8::f_4xnn(machine &m, const opcode &op) { // bne [r] [v]
   m.pc += 2;
 }
 
-void chip8::f_5xy0(machine &m, const opcode &op) { // beqr [x] [y]
+void chip8::f_5xy0(machine &m, const opcode &op) { // seqr [x] [y]
   auto [x, y] = split_xy(op);
   #ifdef DEBUG
   snprintf(
     m.debug_out, m.debug_out_size,
-    "%#06x %#06x : beq V%x, V%x", m.pc, op, x, y
+    "%#06x %#06x : seqr V%x, V%x", m.pc, op, x, y
   );
   #endif
 
@@ -477,12 +477,12 @@ void chip8::f_8xye(machine &m, const opcode &op) { // sll [x]
   m.pc += 2;
 }
 
-void chip8::f_9xy0(machine &m, const opcode &op) { // bner [x] [y]
+void chip8::f_9xy0(machine &m, const opcode &op) { // sner [x] [y]
   auto [x, y] = split_xy(op);
   #ifdef DEBUG
   snprintf(
     m.debug_out, m.debug_out_size,
-    "%#06x %#06x : bner _REG_e, V%x", m.pc, op, x, y
+    "%#06x %#06x : sner _REG_e, V%x", m.pc, op, x, y
   );
   #endif
 
@@ -531,7 +531,7 @@ void chip8::f_cxnn(machine &m, const opcode &op) { // rand [r] [v]
   m.pc += 2;
 }
 
-void chip8::f_dxyn(machine &m, const opcode &op) {
+void chip8::f_dxyn(machine &m, const opcode &op) { // draw [r] [r] [v]
   auto [x, y, n] = split_xyn(op);
   #ifdef DEBUG
   snprintf(
