@@ -69,7 +69,7 @@ std::array<glm::mat4, 3> fullscreen_rect_matrices(const int w, const int h);
 int main(int argc, const char *argv[]) {
   // get base directories and init logger
   xdg::base base_dirs = xdg::get_base_directories();
-  auto log_path = xdg::get_data_path(base_dirs, "qch8", "logs/qch8.log", true);
+  auto log_path = xdg::get_data_path(base_dirs, "qchip", "logs/qchip.log", true);
   fio::log_stream_f log_stream(*log_path);
   log_stream << "GLFW Version: " << glfwGetVersionString() << "\n";
 
@@ -176,7 +176,7 @@ int main(int argc, const char *argv[]) {
   uniformMatrix4fv(shader_program, "model", glm::value_ptr(model));
 
   // load program from file
-  auto prog_path = xdg::get_data_path(base_dirs, "qch8", program);
+  auto prog_path = xdg::get_data_path(base_dirs, "qchip", program);
   if (!prog_path) { log_stream << "program not found: " << program << "\n"; }
   auto prog_data = fio::readb(*prog_path);
   if (!prog_data) { log_stream << "could not read file"; }

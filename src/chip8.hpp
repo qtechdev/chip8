@@ -86,40 +86,40 @@ namespace chip8 {
   void panic(machine &m, const opcode &op);
   void halt(machine &m, const opcode &op);
   // void f_0nnn(machine &m, const opcode &op);
-  void f_00e0(machine &m, const opcode &op);
-  void f_00ee(machine &m, const opcode &op);
-  void f_1nnn(machine &m, const opcode &op);
-  void f_2nnn(machine &m, const opcode &op);
-  void f_3xnn(machine &m, const opcode &op);
-  void f_4xnn(machine &m, const opcode &op);
-  void f_5xy0(machine &m, const opcode &op);
-  void f_6xnn(machine &m, const opcode &op);
-  void f_7xnn(machine &m, const opcode &op);
-  void f_8xy0(machine &m, const opcode &op);
-  void f_8xy1(machine &m, const opcode &op);
-  void f_8xy2(machine &m, const opcode &op);
-  void f_8xy3(machine &m, const opcode &op);
-  void f_8xy4(machine &m, const opcode &op);
-  void f_8xy5(machine &m, const opcode &op);
-  void f_8xy6(machine &m, const opcode &op);
-  void f_8xy7(machine &m, const opcode &op);
-  void f_8xye(machine &m, const opcode &op);
-  void f_9xy0(machine &m, const opcode &op);
-  void f_annn(machine &m, const opcode &op);
-  void f_bnnn(machine &m, const opcode &op);
-  void f_cxnn(machine &m, const opcode &op);
-  void f_dxyn(machine &m, const opcode &op);
-  void f_ex9e(machine &m, const opcode &op);
-  void f_exa1(machine &m, const opcode &op);
-  void f_fx07(machine &m, const opcode &op);
-  void f_fx0a(machine &m, const opcode &op);
-  void f_fx15(machine &m, const opcode &op);
-  void f_fx18(machine &m, const opcode &op);
-  void f_fx1e(machine &m, const opcode &op);
-  void f_fx29(machine &m, const opcode &op);
-  void f_fx33(machine &m, const opcode &op);
-  void f_fx55(machine &m, const opcode &op);
-  void f_fx65(machine &m, const opcode &op);
+  void f_00e0(machine &m, const opcode &op); // clear
+  void f_00ee(machine &m, const opcode &op); // ret
+  void f_1nnn(machine &m, const opcode &op); // jmp [addr]
+  void f_2nnn(machine &m, const opcode &op); // call [addr]
+  void f_3xnn(machine &m, const opcode &op); // seq [r] [v]
+  void f_4xnn(machine &m, const opcode &op); // sne [r] [v]
+  void f_5xy0(machine &m, const opcode &op); // seqr [x] [y]
+  void f_6xnn(machine &m, const opcode &op); // mov [r] [v]
+  void f_7xnn(machine &m, const opcode &op); // add [r] [v]
+  void f_8xy0(machine &m, const opcode &op); // movr [x] [y]
+  void f_8xy1(machine &m, const opcode &op); // or [x] [y]
+  void f_8xy2(machine &m, const opcode &op); // and [x] [y]
+  void f_8xy3(machine &m, const opcode &op); // xor [x] [y]
+  void f_8xy4(machine &m, const opcode &op); // add [x] [y]
+  void f_8xy5(machine &m, const opcode &op); // sub [x] [y]
+  void f_8xy6(machine &m, const opcode &op); // slr [x]
+  void f_8xy7(machine &m, const opcode &op); // rsub [x] [y]
+  void f_8xye(machine &m, const opcode &op); // sll [x]
+  void f_9xy0(machine &m, const opcode &op); // sner [x] [y]
+  void f_annn(machine &m, const opcode &op); // movi [addr]
+  void f_bnnn(machine &m, const opcode &op); // jmpv [addr]
+  void f_cxnn(machine &m, const opcode &op); // rand [r] [v]
+  void f_dxyn(machine &m, const opcode &op); // draw [r] [r] [v]
+  void f_ex9e(machine &m, const opcode &op); // keq [r]
+  void f_exa1(machine &m, const opcode &op); // kne [r]
+  void f_fx07(machine &m, const opcode &op); // std [r]
+  void f_fx0a(machine &m, const opcode &op); // key [r]
+  void f_fx15(machine &m, const opcode &op); // ldd [r]
+  void f_fx18(machine &m, const opcode &op); // lds [r]
+  void f_fx1e(machine &m, const opcode &op); // addi [x]
+  void f_fx29(machine &m, const opcode &op); // addr [x]
+  void f_fx33(machine &m, const opcode &op); // bcd [x]
+  void f_fx55(machine &m, const opcode &op); // str [x]
+  void f_fx65(machine &m, const opcode &op); // ldr [x]
 };
 
 #endif // __CHIP8_HPP__

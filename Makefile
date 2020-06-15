@@ -6,7 +6,7 @@ CXX=g++
 LD_FLAGS=-lcurses -ldl -lGL -lglfw -L./lib -lglad
 CXX_FLAGS=-std=c++17 -I./include
 
-NAME=chip8
+NAME=qchip
 BINARY=out/${NAME}
 
 ifdef DEBUG
@@ -33,3 +33,18 @@ dirs:
 clean:
 	-rm -r build/
 	-rm -r out/
+
+.PHONY: install
+install:
+	cp -r ${BINARY} /usr/local/bin
+	mkdir -p /usr/local/share/${NAME}
+	cp -r data/* /usr/local/share/${NAME}
+	cp app.desktop /usr/local/share/applications/${NAME}.desktop
+	cp icon.png /usr/local/share/icons/${NAME}.png
+
+.PHONY: uninstall
+uninstall:
+	rm /usr/local/bin/${NAME}
+	rm -r /usr/local/share/${NAME}
+	rm /usr/local/share/applications/${NAME}.desktop
+	rm /usr/local/share/icons/${NAME}.png
