@@ -22,6 +22,7 @@ chip8::opcode chip8::fetch_opcode(const machine &m) {
 
 chip8::func_t chip8::decode_opcode(const opcode &op) {
   if (op == 0x0000) { return nop; }
+  if (op == 0xffff) { return halt; }
   if (op == 0x00e0) { return f_00e0; }
   if (op == 0x00ee) { return f_00ee; }
   if ((op & 0xf000) == 0x1000) { return f_1nnn; }

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <fstream>
 #include <optional>
 #include <string>
@@ -102,4 +103,60 @@ std::optional<xdg::path_t> xdg::get_data_path(
   }
 
   return {};
+}
+
+std::vector<xdg::path_t> xdg::get_files_in_directory(const path_t &directory) {
+  std::vector<path_t> files;
+
+  if (fs::is_directory(directory)) {
+    for (const auto &entry : fs::directory_iterator(directory)) {
+      if (fs::is_regular_file(entry.path())) {
+        files.push_back(entry.path());
+      } else if (fs::is_directory(entry.path())){
+        for (const auto &file : get_files_in_directory(entry.path())) {
+          files.push_back(file);
+        }
+      }
+    }
+  }
+
+  return files;
+}
+
+std::vector<xdg::path_t> xdg::search_data_dirs(
+  const base &b, const std::string &name, const std::regex &re
+) {
+  std::vector<path_t> tmp_dirs;
+  tmp_dirs.push_back(b.xdg_data_home / name);
+  for (const auto &p : b.xdg_data_dirs) {
+    tmp_dirs.push_back(p / name);
+  }
+  tmp_dirs.push_back("./data");
+
+  std::vector<path_t> tmp_files;
+  for (const auto &d : tmp_dirs) {
+    for (const auto &f : get_files_in_directory(d)) {
+      tmp_files.push_back(f);
+    }
+  }
+
+
+  std::vector<path_t> files;
+  for (const auto &p : tmp_files) {
+    if (std::regex_search(p.string(), re)) {
+      files.push_back(p);
+    }
+  }
+  // for (const auto &path : paths) {
+  //   for (const auto &p : xdg::fs::directory_iterator(path)) {
+  //     if (!xdg::fs::is_regular_file(p)) {
+  //       continue;
+  //     }
+  //     if (std::regex_search(p.path().string(), re)) {
+  //       files.push_back(p.path());
+  //     }
+  //   }
+  // }
+
+  return files;
 }
