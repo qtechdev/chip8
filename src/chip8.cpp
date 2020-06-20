@@ -228,7 +228,7 @@ void chip8::halt(machine &m, const opcode &op) { // HALT
   );
   #endif
 
-  m.quit = true;
+  m.halted = true;
 }
 
 void chip8::f_00e0(machine &m, const opcode &op) { // clear

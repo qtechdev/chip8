@@ -61,6 +61,7 @@ namespace chip8 {
     bool quit=false;
     bool draw=false;
     bool blocking=false;
+    bool halted=false;
     constexpr static int debug_out_size = 100;
     char debug_out[debug_out_size];
   };

@@ -216,6 +216,11 @@ int main(int argc, const char *argv[]) {
 
     while (time_accumulator >= update_timestep) {
       if (!m.blocking) {
+        if (m.halted) {
+          time_accumulator -= update_timestep;
+          continue;
+        }
+
         chip8::opcode op = chip8::fetch_opcode(m);
         chip8::func_t f = chip8::decode_opcode(op);
         f(m, op);
