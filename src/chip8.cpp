@@ -252,7 +252,7 @@ void chip8::f_00ee(machine &m, const opcode &op) { // ret
   );
   #endif
 
-  m.pc = m.stack[m.sp--];
+  m.pc = m.stack[--m.sp];
 }
 
 void chip8::f_1nnn(machine &m, const opcode &op) { // jmp [addr]
@@ -276,7 +276,7 @@ void chip8::f_2nnn(machine &m, const opcode &op) { // call [addr]
   );
   #endif
 
-  m.stack[m.sp++] = m.pc;
+  m.stack[m.sp++] = m.pc + 2;
   m.pc = addr;
 }
 
