@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <optional>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -26,6 +27,10 @@ namespace xdg {
   std::optional<path_t> get_data_path(
     const base &b, const std::string &name, const path_t &p,
     const bool create=false
+  );
+  std::vector<xdg::path_t> get_files_in_directory(const path_t &directories);
+  std::vector<path_t> search_data_dirs(
+    const base &b, const std::string &name, const std::regex &re
   );
 };
 

@@ -3,7 +3,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <map>
+#include <regex>
 
 #include "glad.h"
 #include <GLFW/glfw3.h>
@@ -47,7 +49,7 @@ static const std::map<int, uint8_t> key_map = {
 };
 
 constexpr timing::seconds update_timestep(1.0/60.0);
-constexpr auto program = "keys.hex";
+static const std::regex program_re(R"re(.*(\.ch8)$)re");
 
 #ifdef DEBUG
 namespace xdg {
@@ -72,6 +74,24 @@ int main(int argc, const char *argv[]) {
   auto log_path = xdg::get_data_path(base_dirs, "qchip", "logs/qchip.log", true);
   fio::log_stream_f log_stream(*log_path);
   log_stream << "GLFW Version: " << glfwGetVersionString() << "\n";
+
+  auto program_files = xdg::search_data_dirs(base_dirs, "qchip", program_re);
+
+  int index = 0;
+  while ((index < 1) || (index > program_files.size())) {
+    std::cout << "Choose program!\n";
+    for (int i = 0; i < program_files.size(); i++) {
+      std::cout << (i + 1) << ") " << program_files[i] << "\n";
+    }
+
+    std::cin >> index;
+    if (std::cin.fail()) {
+      std::cin.clear();
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+  }
+
+  std::string program_path = program_files[index - 1];
 
   // create opengl window and context
   GLFWwindow *window = createWindow(
@@ -106,7 +126,7 @@ int main(int argc, const char *argv[]) {
 
   // load shaders
   auto v_shader_path = xdg::get_data_path(
-    base_dirs, "qogl", "shaders/tex/vshader.glsl"
+    base_dirs, "qchip", "shaders/tex/vshader.glsl"
     #ifdef DEBUG
     , log_stream
     #endif
@@ -114,7 +134,7 @@ int main(int argc, const char *argv[]) {
   auto v_shader_string = fio::read(*v_shader_path);
 
   auto f_shader_path = xdg::get_data_path(
-    base_dirs, "qogl", "shaders/tex/fshader.glsl"
+    base_dirs, "qchip", "shaders/tex/fshader.glsl"
     #ifdef DEBUG
     , log_stream
     #endif
@@ -176,13 +196,11 @@ int main(int argc, const char *argv[]) {
   uniformMatrix4fv(shader_program, "model", glm::value_ptr(model));
 
   // load program from file
-  auto prog_path = xdg::get_data_path(base_dirs, "qchip", program);
-  if (!prog_path) { log_stream << "program not found: " << program << "\n"; }
-  auto prog_data = fio::readb(*prog_path);
-  if (!prog_data) { log_stream << "could not read file"; }
-  log_stream << "loading program ...\n--> " << *prog_path << "\n";
-  log_stream << "--> " << prog_data->size() << " bytes read" << "\n";
-  std::copy(prog_data->begin(), prog_data->end(), &m.mem[0x200]);
+  auto program_data = fio::readb(program_path);
+  if (!program_data) { log_stream << "could not read file"; }
+  log_stream << "loading program ...\n--> " << program_path << "\n";
+  log_stream << "--> " << program_data->size() << " bytes read" << "\n";
+  std::copy(program_data->begin(), program_data->end(), &m.mem[0x200]);
 
   timing::Clock clock;
   timing::Timer loop_timer;
@@ -198,6 +216,11 @@ int main(int argc, const char *argv[]) {
 
     while (time_accumulator >= update_timestep) {
       if (!m.blocking) {
+        if (m.halted) {
+          time_accumulator -= update_timestep;
+          continue;
+        }
+
         chip8::opcode op = chip8::fetch_opcode(m);
         chip8::func_t f = chip8::decode_opcode(op);
         f(m, op);
@@ -235,9 +258,11 @@ int main(int argc, const char *argv[]) {
     glfwSwapBuffers(window);
   }
 
+  #ifdef DEBUG
   // std::cout << dump_memory(m) << "\n";
   // std::cout << dump_graphics_data(m) << "\n";
-  // std::cout << dump_registers(m) << "\n";
+  std::cout << dump_registers(m) << "\n";
+  #endif
 
   return 0;
 }
