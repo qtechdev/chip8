@@ -17,7 +17,8 @@
 #include <qxdg/qxdg.hpp>
 #include <qfio/qfio.hpp>
 
-#include "chip8.hpp"
+#include <qch_vm/qch_vm.hpp>
+
 #include "gl/rect.hpp"
 #include "gl/shader_program.hpp"
 #include "gl/texture.hpp"
@@ -66,7 +67,7 @@ namespace fio {
 }
 #endif
 
-void processInput(GLFWwindow *window, chip8::machine &m);
+void processInput(GLFWwindow *window, qch_vm::machine &m);
 std::array<glm::mat4, 3> fullscreen_rect_matrices(const int w, const int h);
 
 int main(int argc, const char *argv[]) {
@@ -166,8 +167,8 @@ int main(int argc, const char *argv[]) {
   }
   #endif
 
-  // chip8 virtual machine
-  chip8::machine m;
+  // qch_vm virtual machine
+  qch_vm::machine m;
   m.draw = true; // force screen refresh at program start
 
   // initialise texture
@@ -222,8 +223,8 @@ int main(int argc, const char *argv[]) {
           continue;
         }
 
-        chip8::opcode op = chip8::fetch_opcode(m);
-        chip8::func_t f = chip8::decode_opcode(op);
+        qch_vm::opcode op = qch_vm::fetch_opcode(m);
+        qch_vm::func_t f = qch_vm::decode_opcode(op);
         f(m, op);
 
         #ifdef DEBUG
@@ -234,7 +235,7 @@ int main(int argc, const char *argv[]) {
         --m.delay_timer;
         --m.sound_timer;
       } else {
-        chip8::get_key(m);
+        qch_vm::get_key(m);
       }
 
       if (m.draw) {
@@ -297,7 +298,7 @@ std::optional<xdg::path_t> fio::read(
 }
 #endif
 
-void processInput(GLFWwindow *window, chip8::machine &m) {
+void processInput(GLFWwindow *window, qch_vm::machine &m) {
   if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
   }
