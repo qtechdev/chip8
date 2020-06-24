@@ -50,7 +50,8 @@ static const std::map<int, uint8_t> key_map = {
   {GLFW_KEY_V, 0xf}
 };
 
-constexpr timing::seconds update_timestep(1.0/60.0);
+constexpr timing::seconds loop_timestep(1.0/500.0);
+constexpr timing::seconds timer_timestep(1.0/60.0);
 static const std::regex program_re(R"re(.*(\.ch8)$)re");
 
 #ifdef DEBUG
@@ -206,20 +207,22 @@ int main(int argc, const char *argv[]) {
 
   timing::Clock clock;
   timing::Timer loop_timer;
-  timing::seconds time_accumulator(0.0);
+  timing::seconds loop_accumulator(0.0);
+  timing::Timer timer_timer;
+  timing::seconds timer_accumulator(0.0);
 
   while (!m.quit && !glfwWindowShouldClose(window)) {
-    time_accumulator += loop_timer.getDelta();
+    loop_accumulator += loop_timer.getDelta();
     loop_timer.tick(clock.get());
 
     //process input
     glfwPollEvents();
     processInput(window, m);
 
-    while (time_accumulator >= update_timestep) {
+    while (loop_accumulator >= loop_timestep) {
       if (!m.blocking) {
         if (m.halted) {
-          time_accumulator -= update_timestep;
+          loop_accumulator -= loop_timestep;
           continue;
         }
 
@@ -231,9 +234,14 @@ int main(int argc, const char *argv[]) {
         std::cout << m.debug_out << "\n";
         #endif
 
-        // reduce timers
-        --m.delay_timer;
-        --m.sound_timer;
+        timer_accumulator += timer_timer.getDelta();
+        timer_timer.tick(clock.get());
+        while (timer_accumulator >= timer_timestep) {
+          // reduce timers
+          --m.delay_timer;
+          --m.sound_timer;
+          timer_accumulator -= timer_timestep;
+        }
       } else {
         qch_vm::get_key(m);
       }
@@ -248,7 +256,7 @@ int main(int argc, const char *argv[]) {
         m.draw = false;
       }
 
-      time_accumulator -= update_timestep;
+      loop_accumulator -= loop_timestep;
     }
 
     // draw screen texture
