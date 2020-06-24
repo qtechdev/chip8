@@ -231,7 +231,9 @@ int main(int argc, const char *argv[]) {
         f(m, op);
 
         #ifdef DEBUG
-        std::cout << m.debug_out << "\n";
+        if (m.debug_enabled) {
+          std::cout << m.debug_out << "\n";
+        }
         #endif
 
         timer_accumulator += timer_timer.getDelta();
