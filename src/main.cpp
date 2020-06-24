@@ -14,15 +14,17 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "chip8.hpp"
+#include <qxdg/qxdg.hpp>
+#include <qfio/qfio.hpp>
+
+#include <qch_vm/qch_vm.hpp>
+
 #include "gl/rect.hpp"
 #include "gl/shader_program.hpp"
 #include "gl/texture.hpp"
 #include "gl/window.hpp"
 #include "util/error.hpp"
-#include "util/file_io.hpp"
 #include "util/timer.hpp"
-#include "util/xdg.hpp"
 
 static constexpr int window_width = 640;
 static constexpr int window_height = 480;
@@ -48,7 +50,8 @@ static const std::map<int, uint8_t> key_map = {
   {GLFW_KEY_V, 0xf}
 };
 
-constexpr timing::seconds update_timestep(1.0/60.0);
+constexpr timing::seconds loop_timestep(1.0/500.0);
+constexpr timing::seconds timer_timestep(1.0/60.0);
 static const std::regex program_re(R"re(.*(\.ch8)$)re");
 
 #ifdef DEBUG
@@ -65,7 +68,7 @@ namespace fio {
 }
 #endif
 
-void processInput(GLFWwindow *window, chip8::machine &m);
+void processInput(GLFWwindow *window, qch_vm::machine &m);
 std::array<glm::mat4, 3> fullscreen_rect_matrices(const int w, const int h);
 
 int main(int argc, const char *argv[]) {
@@ -165,8 +168,8 @@ int main(int argc, const char *argv[]) {
   }
   #endif
 
-  // chip8 virtual machine
-  chip8::machine m;
+  // qch_vm virtual machine
+  qch_vm::machine m;
   m.draw = true; // force screen refresh at program start
 
   // initialise texture
@@ -204,36 +207,45 @@ int main(int argc, const char *argv[]) {
 
   timing::Clock clock;
   timing::Timer loop_timer;
-  timing::seconds time_accumulator(0.0);
+  timing::seconds loop_accumulator(0.0);
+  timing::Timer timer_timer;
+  timing::seconds timer_accumulator(0.0);
 
   while (!m.quit && !glfwWindowShouldClose(window)) {
-    time_accumulator += loop_timer.getDelta();
+    loop_accumulator += loop_timer.getDelta();
     loop_timer.tick(clock.get());
 
     //process input
     glfwPollEvents();
     processInput(window, m);
 
-    while (time_accumulator >= update_timestep) {
+    while (loop_accumulator >= loop_timestep) {
       if (!m.blocking) {
         if (m.halted) {
-          time_accumulator -= update_timestep;
+          loop_accumulator -= loop_timestep;
           continue;
         }
 
-        chip8::opcode op = chip8::fetch_opcode(m);
-        chip8::func_t f = chip8::decode_opcode(op);
+        qch_vm::opcode op = qch_vm::fetch_opcode(m);
+        qch_vm::func_t f = qch_vm::decode_opcode(op);
         f(m, op);
 
         #ifdef DEBUG
-        std::cout << m.debug_out << "\n";
+        if (m.debug_enabled) {
+          std::cout << m.debug_out << "\n";
+        }
         #endif
 
-        // reduce timers
-        --m.delay_timer;
-        --m.sound_timer;
+        timer_accumulator += timer_timer.getDelta();
+        timer_timer.tick(clock.get());
+        while (timer_accumulator >= timer_timestep) {
+          // reduce timers
+          --m.delay_timer;
+          --m.sound_timer;
+          timer_accumulator -= timer_timestep;
+        }
       } else {
-        chip8::get_key(m);
+        qch_vm::get_key(m);
       }
 
       if (m.draw) {
@@ -246,7 +258,7 @@ int main(int argc, const char *argv[]) {
         m.draw = false;
       }
 
-      time_accumulator -= update_timestep;
+      loop_accumulator -= loop_timestep;
     }
 
     // draw screen texture
@@ -296,7 +308,7 @@ std::optional<xdg::path_t> fio::read(
 }
 #endif
 
-void processInput(GLFWwindow *window, chip8::machine &m) {
+void processInput(GLFWwindow *window, qch_vm::machine &m) {
   if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
   }
