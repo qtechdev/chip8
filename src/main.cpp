@@ -203,7 +203,7 @@ int main(int argc, const char *argv[]) {
   if (!program_data) { log_stream << "could not read file"; }
   log_stream << "loading program ...\n--> " << program_path << "\n";
   log_stream << "--> " << program_data->size() << " bytes read" << "\n";
-  std::copy(program_data->begin(), program_data->end(), &m.mem[0x200]);
+  qch_vm::load_program(m, *program_data);
 
   timing::Clock clock;
   timing::Timer loop_timer;
