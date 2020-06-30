@@ -203,7 +203,7 @@ int main(int argc, const char *argv[]) {
   if (!program_data) { log_stream << "could not read file"; }
   log_stream << "loading program ...\n--> " << program_path << "\n";
   log_stream << "--> " << program_data->size() << " bytes read" << "\n";
-  std::copy(program_data->begin(), program_data->end(), &m.mem[0x200]);
+  qch_vm::load_program(m, *program_data);
 
   timing::Clock clock;
   timing::Timer loop_timer;
@@ -226,9 +226,9 @@ int main(int argc, const char *argv[]) {
           continue;
         }
 
-        qch_vm::opcode op = qch_vm::fetch_opcode(m);
-        qch_vm::func_t f = qch_vm::decode_opcode(op);
-        f(m, op);
+        qch::instruction inst = qch_vm::fetch_instruction(m);
+        qch_vm::fn f = qch_vm::decode_instruction(inst);
+        f(m, inst);
 
         #ifdef DEBUG
         if (m.debug_enabled) {
