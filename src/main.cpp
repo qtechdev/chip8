@@ -226,9 +226,9 @@ int main(int argc, const char *argv[]) {
           continue;
         }
 
-        qch_vm::opcode op = qch_vm::fetch_opcode(m);
-        qch_vm::func_t f = qch_vm::decode_opcode(op);
-        f(m, op);
+        qch::instruction inst = qch_vm::fetch_instruction(m);
+        qch_vm::fn f = qch_vm::decode_instruction(inst);
+        f(m, inst);
 
         #ifdef DEBUG
         if (m.debug_enabled) {
