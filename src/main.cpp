@@ -2,11 +2,13 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
+#include <deque>
 #include <limits>
 #include <map>
 #include <regex>
+#include <string>
 
+#include <ncurses.h>
 #include "glad.h"
 #include <GLFW/glfw3.h>
 
@@ -27,7 +29,7 @@
 #include "util/timer.hpp"
 
 static constexpr int window_width = 640;
-static constexpr int window_height = 480;
+static constexpr int window_height = 320;
 static constexpr int gl_major_version = 3;
 static constexpr int gl_minor_version = 3;
 
@@ -53,6 +55,7 @@ static const std::map<int, uint8_t> key_map = {
 constexpr timing::seconds loop_timestep(1.0/500.0);
 constexpr timing::seconds timer_timestep(1.0/60.0);
 static const std::regex program_re(R"re(.*(\.ch8)$)re");
+constexpr std::size_t history_size = 10;
 
 #ifdef DEBUG
 namespace xdg {
@@ -80,21 +83,29 @@ int main(int argc, const char *argv[]) {
 
   auto program_files = xdg::search_data_dirs(base_dirs, "qchip", program_re);
 
-  int index = 0;
-  while ((index < 1) || (index > program_files.size())) {
-    std::cout << "Choose program!\n";
+  int index = -1;
+  initscr();
+  while ((index < 0) || (index > program_files.size())) {
+    clear();
+    printw("Choose program!\n");
+
     for (int i = 0; i < program_files.size(); i++) {
-      std::cout << (i + 1) << ") " << program_files[i] << "\n";
+      char buf[256];
+      snprintf(buf, 256, "%i) %s\n", i, program_files[i].c_str());
+      printw(buf);
     }
 
-    std::cin >> index;
-    if (std::cin.fail()) {
-      std::cin.clear();
-      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
+    std::string user_in;
+    getstr(&user_in[0]);
+    try {
+      index = std::stoi(user_in);
+    } catch (std::invalid_argument &e) {}
+
+    refresh();
   }
 
-  std::string program_path = program_files[index - 1];
+  clear();
+  std::string program_path = program_files[index];
 
   // create opengl window and context
   GLFWwindow *window = createWindow(
@@ -211,6 +222,9 @@ int main(int argc, const char *argv[]) {
   timing::Timer timer_timer;
   timing::seconds timer_accumulator(0.0);
 
+  std::deque<std::string> history;
+
+  int counter = 0;
   while (!m.quit && !glfwWindowShouldClose(window)) {
     loop_accumulator += loop_timer.getDelta();
     loop_timer.tick(clock.get());
@@ -231,9 +245,24 @@ int main(int argc, const char *argv[]) {
         f(m, inst);
 
         #ifdef DEBUG
-        if (m.debug_enabled) {
-          std::cout << m.debug_out << "\n";
+        char buf[256];
+        snprintf(
+          buf, 256, " %0#6x | %0#6x | %0#6x \n",
+          counter, m.pc, inst.value | inst.data
+        );
+        counter++;
+        history.push_back(buf);
+        while (history.size() > history_size) {
+          history.pop_front();
         }
+
+        clear();
+        printw(dump_registers(m).c_str());
+        printw("\n\n Count  | PC     | Instruction\n");
+        for (const auto &s : history) {
+          printw(s.c_str());
+        }
+        refresh();
         #endif
 
         timer_accumulator += timer_timer.getDelta();
@@ -270,11 +299,7 @@ int main(int argc, const char *argv[]) {
     glfwSwapBuffers(window);
   }
 
-  #ifdef DEBUG
-  // std::cout << dump_memory(m) << "\n";
-  // std::cout << dump_graphics_data(m) << "\n";
-  std::cout << dump_registers(m) << "\n";
-  #endif
+  endwin();
 
   return 0;
 }
