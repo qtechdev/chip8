@@ -33,6 +33,16 @@ static constexpr int window_height = 320;
 static constexpr int gl_major_version = 3;
 static constexpr int gl_minor_version = 3;
 
+struct key {
+  int key_code;
+  std::string name;
+  bool is_pressed = false;
+  bool is_handled = false;
+};
+static key key_pause{GLFW_KEY_SPACE, "SPACEBAR"};
+static key key_step{GLFW_KEY_PERIOD, ">"};
+static key key_reset{GLFW_KEY_0, "0"};
+
 static const std::map<int, uint8_t> key_map = {
   {GLFW_KEY_X, 0x0},
   {GLFW_KEY_1, 0x1},
@@ -105,6 +115,13 @@ int main(int argc, const char *argv[]) {
   }
 
   clear();
+  printw("Loading program ");
+  printw(program_files[index].c_str());
+  printw("...\n");
+  printw("Press [");
+  printw(key_pause.name.c_str());
+  printw("] to continue!\n");
+  refresh();
   std::string program_path = program_files[index];
 
   // create opengl window and context
@@ -225,6 +242,8 @@ int main(int argc, const char *argv[]) {
   std::deque<std::string> history;
 
   int counter = 0;
+  bool is_paused = true;
+  bool is_single_step = false;
   while (!m.quit && !glfwWindowShouldClose(window)) {
     loop_accumulator += loop_timer.getDelta();
     loop_timer.tick(clock.get());
@@ -233,11 +252,66 @@ int main(int argc, const char *argv[]) {
     glfwPollEvents();
     processInput(window, m);
 
+    if(
+      (glfwGetKey(window, key_pause.key_code) == GLFW_PRESS) &&
+      !key_pause.is_handled
+    ) {
+      is_paused = !is_paused;
+      key_pause.is_pressed = true;
+      key_pause.is_handled = true;
+    }
+
+    if(glfwGetKey(window, key_pause.key_code) == GLFW_RELEASE) {
+      key_pause.is_pressed = false;
+      key_pause.is_handled = false;
+    }
+
+    if(
+      (glfwGetKey(window, key_step.key_code) == GLFW_PRESS) &&
+      !key_step.is_handled
+    ) {
+      is_paused = false;
+      is_single_step = true;
+      key_step.is_pressed = true;
+      key_step.is_handled = true;
+    }
+
+    if(glfwGetKey(window, key_step.key_code) == GLFW_RELEASE) {
+      key_step.is_pressed = false;
+      key_step.is_handled = false;
+    }
+
+    if(
+      (glfwGetKey(window, key_reset.key_code) == GLFW_PRESS) &&
+      !key_reset.is_handled
+    ) {
+      qch_vm::clear(m, {});
+      m.pc = qch_vm::entry_point;
+      m.halted = false;
+      counter = 0;
+      key_reset.is_pressed = true;
+      key_reset.is_handled = true;
+    }
+
+    if(glfwGetKey(window, key_reset.key_code) == GLFW_RELEASE) {
+      key_reset.is_pressed = false;
+      key_reset.is_handled = false;
+    }
+
     while (loop_accumulator >= loop_timestep) {
       if (!m.blocking) {
         if (m.halted) {
           loop_accumulator -= loop_timestep;
           continue;
+        }
+
+        if (is_paused) {
+          loop_accumulator -= loop_timestep;
+          continue;
+        }
+        if (is_single_step) {
+          is_paused = true;
+          is_single_step = false;
         }
 
         qch::instruction inst = qch_vm::fetch_instruction(m);
