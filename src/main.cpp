@@ -269,8 +269,8 @@ int main(int argc, const char *argv[]) {
         timer_timer.tick(clock.get());
         while (timer_accumulator >= timer_timestep) {
           // reduce timers
-          --m.delay_timer;
-          --m.sound_timer;
+          if (m.delay_timer > 0) { --m.delay_timer; }
+          if (m.sound_timer > 0) { --m.sound_timer; }
           timer_accumulator -= timer_timestep;
         }
       } else {
