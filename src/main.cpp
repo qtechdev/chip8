@@ -200,12 +200,19 @@ int main(int argc, const char *argv[]) {
   qch_vm::machine m;
   m.draw = true; // force screen refresh at program start
 
+  // load program from file
+  auto program_data = fio::readb(program_path);
+  if (!program_data) { log_stream << "could not read file"; }
+  log_stream << "loading program ...\n--> " << program_path << "\n";
+  log_stream << "--> " << program_data->size() << " bytes read" << "\n";
+  qch_vm::load_program(m, *program_data);
+
   // initialise texture
-  constexpr std::size_t num_cols = m.display_width;
-  constexpr std::size_t num_rows = m.display_height;
-  constexpr std::size_t num_channels = 1;
-  constexpr std::size_t image_stride = num_cols * num_channels;
-  constexpr std::size_t data_size = num_cols*num_rows*num_channels;
+  static const std::size_t num_cols = m.display_width;
+  static const std::size_t num_rows = m.display_height;
+  static constexpr std::size_t num_channels = 1;
+  static const std::size_t image_stride = num_cols * num_channels;
+  static const std::size_t data_size = num_cols*num_rows*num_channels;
   unsigned char data[num_cols*num_rows*num_channels];
 
   for (int i = 0; i < data_size; i++) {
@@ -225,13 +232,6 @@ int main(int argc, const char *argv[]) {
   uniformMatrix4fv(shader_program, "projection", glm::value_ptr(projection));
   uniformMatrix4fv(shader_program, "view", glm::value_ptr(view));
   uniformMatrix4fv(shader_program, "model", glm::value_ptr(model));
-
-  // load program from file
-  auto program_data = fio::readb(program_path);
-  if (!program_data) { log_stream << "could not read file"; }
-  log_stream << "loading program ...\n--> " << program_path << "\n";
-  log_stream << "--> " << program_data->size() << " bytes read" << "\n";
-  qch_vm::load_program(m, *program_data);
 
   timing::Clock clock;
   timing::Timer loop_timer;
