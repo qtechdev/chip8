@@ -6,6 +6,7 @@
 #include <limits>
 #include <map>
 #include <regex>
+#include <sstream>
 #include <string>
 
 #include <ncurses.h>
@@ -20,6 +21,7 @@
 #include <qfio/qfio.hpp>
 
 #include <qch_vm/qch_vm.hpp>
+#include <qch_vm/spec.hpp>
 
 #include "gl/rect.hpp"
 #include "gl/shader_program.hpp"
@@ -83,6 +85,8 @@ namespace fio {
 
 void processInput(GLFWwindow *window, qch_vm::machine &m);
 std::array<glm::mat4, 3> fullscreen_rect_matrices(const int w, const int h);
+
+std::string dis(const qch::instruction &inst);
 
 int main(int argc, const char *argv[]) {
   // get base directories and init logger
@@ -321,8 +325,8 @@ int main(int argc, const char *argv[]) {
         #ifdef DEBUG
         char buf[256];
         snprintf(
-          buf, 256, " %0#6x | %0#6x | %0#6x \n",
-          counter, m.pc, inst.value | inst.data
+          buf, 256, " %0#6x | %0#6x | %0#6x | %s \n",
+          counter, m.pc, inst.value | inst.data, dis(inst).c_str()
         );
         counter++;
         history.push_back(buf);
@@ -433,4 +437,44 @@ std::array<glm::mat4, 3> fullscreen_rect_matrices(const int w, const int h) {
   model = glm::scale(model, glm::vec3(w, h, 1));
 
   return {projection, view, model};
+}
+
+std::string dis(const qch::instruction &inst) {
+  std::stringstream ss;
+  ss << inst.name;
+
+  switch (inst.args) {
+    case qch::args_config::R:
+      ss << " " << qch::reg_token << std::hex << +qch::get_r(inst);
+      break;
+    case qch::args_config::RR: {
+        auto [x, y] = qch::get_rr(inst);
+        ss << " " << qch::reg_token << std::hex << +x << " ";
+        ss << qch::reg_token << std::hex << +y;
+      }
+      break;
+    case qch::args_config::RB: {
+        auto [x, b] = qch::get_rb(inst);
+        ss << " " << qch::reg_token << std::hex << +x << " ";
+        ss << "0x" << std::hex << +b;
+      }
+      break;
+    case qch::args_config::RRN: {
+        auto [x, y, n] = qch::get_rrn(inst);
+        ss << " " << qch::reg_token << std::hex << +x << " ";
+        ss << qch::reg_token << std::hex << +y << " ";
+        ss << "0x" << std::hex << +n;
+      }
+      break;
+    case qch::args_config::A:
+      ss << " 0x" << std::hex << +qch::get_a(inst);
+      break;
+    case qch::args_config::D:
+      ss << " " << qch::data_token << std::hex << inst.data;
+      break;
+    case qch::args_config::Z:
+    default: break;
+  }
+
+  return ss.str();
 }
