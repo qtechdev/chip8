@@ -1,6 +1,6 @@
 #include <cstddef>
 
-#include "glad.h"
+#include <glad/glad.h>
 
 #include "texture.hpp"
 

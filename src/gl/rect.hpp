@@ -1,7 +1,7 @@
 #ifndef __RECT_HPP__
 #define __RECT_HPP__
 
-#include "glad.h"
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 static GLuint current_vao = 0;

@@ -3,8 +3,8 @@ OBJECTS=$(patsubst src/%,build/%,${SOURCES:.cpp=.o})
 DIRS=$(filter-out build/,$(sort $(dir ${OBJECTS})))
 
 CXX=g++
-LD_FLAGS=-lcurses -ldl -lGL -lglfw -L./lib -lglad -lqfio -lqxdg -lqch_vm
-CXX_FLAGS=-std=c++17 -I./include
+LD_FLAGS=-lcurses -ldl -lGL -lglfw -lglad -lqfio -lqxdg -lqch_vm
+CXX_FLAGS=-std=c++17
 
 NAME=qchip
 BINARY=out/${NAME}

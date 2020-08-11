@@ -3,7 +3,7 @@
 #include <optional>
 #include <string>
 
-#include "glad.h"
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 GLuint createShader(const GLenum shader_type, const std::string &shader_string);

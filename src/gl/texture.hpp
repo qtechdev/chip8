@@ -2,7 +2,7 @@
 #define __TEXTURE_HPP__
 #include <cstddef>
 
-#include "glad.h"
+#include <glad/glad.h>
 
 static GLuint current_texture = 0;
 

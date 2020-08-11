@@ -10,7 +10,7 @@
 #include <string>
 
 #include <ncurses.h>
-#include "glad.h"
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -70,15 +70,15 @@ static const std::regex program_re(R"re(.*(\.ch8)$)re");
 constexpr std::size_t history_size = 10;
 
 #ifdef DEBUG
-namespace xdg {
-  std::optional<xdg::path_t> get_data_path(
-    const xdg::base &b, const std::string &n, const std::string &p,
+namespace qxdg {
+  std::optional<qxdg::path_t> get_data_path(
+    const qxdg::base &b, const std::string &n, const std::string &p,
     fio::log_stream_f &log_stream, const bool create=false
   );
 }
 namespace fio {
-  std::optional<xdg::path_t> read(
-    const xdg::path_t &path, fio::log_stream_f &log_stream
+  std::optional<qxdg::path_t> read(
+    const qxdg::path_t &path, fio::log_stream_f &log_stream
   );
 }
 #endif
@@ -90,12 +90,12 @@ std::string dis(const qch::instruction &inst);
 
 int main(int argc, const char *argv[]) {
   // get base directories and init logger
-  xdg::base base_dirs = xdg::get_base_directories();
-  auto log_path = xdg::get_data_path(base_dirs, "qchip", "logs/qchip.log", true);
+  qxdg::base base_dirs = qxdg::get_base_directories();
+  auto log_path = qxdg::get_data_path(base_dirs, "qchip", "logs/qchip.log", true);
   fio::log_stream_f log_stream(*log_path);
   log_stream << "GLFW Version: " << glfwGetVersionString() << "\n";
 
-  auto program_files = xdg::search_data_dirs(base_dirs, "qchip", program_re);
+  auto program_files = qxdg::search_data_dirs(base_dirs, "qchip", program_re);
 
   int index = -1;
   initscr();
@@ -160,7 +160,7 @@ int main(int argc, const char *argv[]) {
   log_stream << "OpenGL Version: " << glGetString(GL_VERSION) << "\n";
 
   // load shaders
-  auto v_shader_path = xdg::get_data_path(
+  auto v_shader_path = qxdg::get_data_path(
     base_dirs, "qchip", "shaders/tex/vshader.glsl"
     #ifdef DEBUG
     , log_stream
@@ -168,7 +168,7 @@ int main(int argc, const char *argv[]) {
   );
   auto v_shader_string = fio::read(*v_shader_path);
 
-  auto f_shader_path = xdg::get_data_path(
+  auto f_shader_path = qxdg::get_data_path(
     base_dirs, "qchip", "shaders/tex/fshader.glsl"
     #ifdef DEBUG
     , log_stream
@@ -246,7 +246,7 @@ int main(int argc, const char *argv[]) {
   std::deque<std::string> history;
 
   int counter = 0;
-  bool is_paused = true;
+  bool is_paused = false;
   bool is_single_step = false;
   while (!m.quit && !glfwWindowShouldClose(window)) {
     loop_accumulator += loop_timer.getDelta();
@@ -383,12 +383,12 @@ int main(int argc, const char *argv[]) {
 }
 
 #ifdef DEBUG
-std::optional<xdg::path_t> xdg::get_data_path(
-  const xdg::base &b, const std::string &n, const std::string &p,
+std::optional<qxdg::path_t> qxdg::get_data_path(
+  const qxdg::base &b, const std::string &n, const std::string &p,
   fio::log_stream_f &log_stream, const bool create
 ) {
   log_stream << "Fetching path: " << p << "\n";
-  auto path = xdg::get_data_path(b, n, p);
+  auto path = qxdg::get_data_path(b, n, p);
   if (!path) {
     log_stream << "[w] `" << p << "` not found...\n";
   } else {
@@ -398,8 +398,8 @@ std::optional<xdg::path_t> xdg::get_data_path(
   return path;
 }
 
-std::optional<xdg::path_t> fio::read(
-  const xdg::path_t &path, fio::log_stream_f &log_stream
+std::optional<qxdg::path_t> fio::read(
+  const qxdg::path_t &path, fio::log_stream_f &log_stream
 ) {
   log_stream << "Loading file: " << path << "\n";
   auto data = fio::read(path);
